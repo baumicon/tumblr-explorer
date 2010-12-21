@@ -1,0 +1,34 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    builder (2.1.2)
+    i18n (0.5.0)
+    json (1.4.3)
+    nokogiri (1.4.2)
+    pg (0.10.0)
+    rack (1.2.1)
+    sequel (3.18.0)
+    sinatra (1.1.0)
+      rack (~> 1.1)
+      tilt (~> 1.1)
+    sinatra-sequel (0.9.0)
+      sequel (>= 3.2.0)
+      sinatra (>= 0.9.4)
+    sqlite3-ruby (1.3.0)
+    tilt (1.1)
+    tzinfo (0.3.22)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  builder (= 2.1.2)
+  i18n (= 0.5.0)
+  json (= 1.4.3)
+  nokogiri (= 1.4.2)
+  pg
+  sequel (= 3.18.0)
+  sinatra (= 1.1.0)
+  sinatra-sequel (= 0.9.0)
+  sqlite3-ruby (= 1.3.0)
+  tzinfo (= 0.3.22)
