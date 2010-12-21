@@ -1,3 +1,7 @@
 #explorer-content {
     display: none;
 }
+.postImage {
+    vertical-align: middle;
+    display: table;
+}
