@@ -83,7 +83,7 @@ class TumblrExplorer < Sinatra::Base
   end
 
   class Tumblr < Sequel::Model
-    one_to_many :posts, :eager_graph => :via, :order => :timestamp
+    one_to_many :posts, :eager_graph => :via, :order => :timestamp.desc
   end
 
   class Post < Sequel::Model
