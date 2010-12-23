@@ -2,6 +2,14 @@ var currentTumblr = null;
 
 var tumblrs = [];
 
+$(function() {
+    $("#fullScreen img").load(function() {
+        $("#explorer, #via").fadeTo(500, 0.1, function() {
+            $("#fullScreen").fadeIn(500);
+        });
+    });
+});
+
 function displayMain() {
     var url = $("input[name=u]").val();
     if (url != "") {
@@ -15,7 +23,8 @@ function displayMain() {
                                           var currentPost = currentTumblr.posts[i];
                                           currentPost.timestamp = new Date(currentPost.timestamp);
                                           var content = "<div class='post' id='post_" + currentPost.id + "'>" +
-                                                  "<div class='postImage' id='divImage_" + currentPost.id + "'><img id='image_" + currentPost.id + "'>";
+                                                  "<div class='postImage' id='divImage_" + currentPost.id + "'>" +
+                                                  "<a onclick='showFullScreen(\"" + currentPost.max_image_url + "\");'><img id='image_" + currentPost.id + "'></a>";
                                           content += "<div class='postDate'>" +
                                                   "<a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + currentPost.timestamp.toLocaleString() + "</a>";
                                           if (currentPost.via) {
@@ -25,7 +34,7 @@ function displayMain() {
                                           $("#explorerContent").append(content);
                                           $("#image_" + currentPost.id).load(
                                                                             function() {
-                                                                                $(this).parent().parent().slideDown(2000);
+                                                                                $(this).parent().parent().parent().slideDown(2000);
                                                                             }).attr('src', currentPost.small_image_url);
                                       }
                                   }).remove();
@@ -44,7 +53,7 @@ function displayVia(id) {
                     var currentPost = tumblr.posts[i];
                     if (currentPost.id != id) {
                         var content = "<span class='via'>" +
-                                "<img id='viaImage_" + currentPost.id + "'>"
+                                "<img id='viaImage_" + currentPost.id + "'onclick='showFullScreen(\"" + currentPost.max_image_url + "\");'>"
                                 + "</span>";
                         via.append(content);
                         $("#viaImage_" + currentPost.id).load(
@@ -82,5 +91,15 @@ function displayVia(id) {
                 });
             }
         }
+    });
+}
+
+function showFullScreen(imageUrl) {
+    $("#fullScreen img").attr('src', imageUrl);
+}
+
+function hideFullScreen() {
+    $("#fullScreen").fadeOut(250, function() {
+        $("#explorer, #via").fadeTo(250, 1);
     });
 }

@@ -49,6 +49,7 @@ a:hover {
     border-radius: 10px;
     max-height: 300px;
     max-width: 300px;
+    cursor: pointer;
 }
 
 #via {
@@ -76,4 +77,22 @@ a:hover {
     margin: 5px;
     max-height: 100px;
     max-width: 100px;
+    cursor: pointer;
+}
+
+#fullScreen {
+    position: fixed;
+    top: 30px;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+    display: none;
+}
+
+#fullScreen img {
+    border: 2px #505050 solid;
+    padding: 8px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
 }
