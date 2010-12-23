@@ -47,7 +47,7 @@ class TumblrExplorer < Sinatra::Base
   set :views, Proc.new { File.join(root, "views") }
 
   set :raise_errors, true
-  set :show_exceptions, :true
+  set :show_exceptions, true
 
   if ENV['LOGGING']
     set :logging, true
