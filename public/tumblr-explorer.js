@@ -68,7 +68,7 @@ function displayVia(id) {
 
             var displayTumblrInVia = function(tumblr) {
                 var displayVia = function() {
-                    $('body').append("<div id='via'><div>emugzmiazug</div></div>");
+                    $('body').append("<div id='via'><div>" + tumblr.name + " ★</div></div>");
                     $("#via").css('top', $("#image_" + id).offset().top).slideDown(function() {
                         createVia(tumblr);
                     });
