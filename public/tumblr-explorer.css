@@ -34,6 +34,7 @@ a:hover {
     font-size: 36px;
     padding-bottom: 10px;
     padding-left: 20px;
+    display: none;
 }
 
 .postDate {
