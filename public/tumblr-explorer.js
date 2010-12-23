@@ -8,6 +8,10 @@ $(function() {
             $("#fullScreen").fadeIn(500);
         });
     });
+
+    $('#error').ajaxError(function() {
+        $(this).fadeIn().delay(5000).fadeOut();
+    });
 });
 
 function displayMain() {
@@ -32,7 +36,8 @@ function displayTumblr(tumblrUrl) {
 }
 
 function displayCurrentTumblr() {
-    $("#explorerTitle").html(currentTumblr.name + " <a href='" + currentTumblr.url + "' target='_blank'>→</a>").slideDown();;
+    $("#explorerTitle").html(currentTumblr.name + " <a href='" + currentTumblr.url + "' target='_blank'>→</a>").slideDown();
+    ;
     for (var i = 0; i < Math.min(25, currentTumblr.posts.length); i++) {
         var currentPost = currentTumblr.posts[i];
         currentPost.timestamp = new Date(currentPost.timestamp);
