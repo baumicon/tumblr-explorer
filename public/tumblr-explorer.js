@@ -19,7 +19,7 @@ $(function() {
         if (tumblrUrl == "") {
             if (currentTumblr) {
                 currentTumblr = null;
-                $("#explorer, #via").slideUp(function() {
+                $("#explorer, #via, #navigation, .navigationContent").slideUp(function() {
                     $(".post").remove();
                     $("#explorerTitle").hide();
                     $("#explorer").show();
@@ -29,7 +29,8 @@ $(function() {
                 // starting the app: doing nothing
             }
         } else {
-            $("#explorer, #via, #mainForm").slideUp(function() {
+            $("#navigation").slideDown(addNavigationDisplayTumblrLink);
+            $("#explorer, #via, #mainForm, .navigationContent").slideUp(function() {
                 $(".post").remove();
                 $("#explorerTitle").hide();
                 $("#explorer").show();
@@ -46,6 +47,8 @@ $(function() {
             });
         }
     });
+
+    addNavigationDisplayTumblrLink();
 });
 
 function displayMain() {
@@ -212,4 +215,29 @@ function untagTumblr(tumblrUrl, divId) {
         $(this).text("☆").unbind('click').fadeIn(300);
         bindTagTumblrLink(tumblrUrl, divId);
     });
+}
+
+function navigationDisplayTumblrs() {
+    var content = "<ul>";
+    $.each(taggedTumblrs, function(i, tumblr) {
+       content += "<li><a " + (tumblr.viewed ? ' class="visited"' : '') + "href='#' title='Show this tumblr' onclick='$.history.load(\"" + tumblr.url + "\"); return false;'>" + tumblr.name + "</a></li>";
+    });
+    content += "</ul>";
+    $("#taggedTumblrs").html(content).slideDown();
+    $("#navigationTumblrs").unbind('click').click(function() {
+        navigationHideTumblrs();
+        return false;
+    }).attr('title', 'Hide tagged tumblrs')
+}
+
+function addNavigationDisplayTumblrLink() {
+    $("#navigationTumblrs").unbind('click').click(function() {
+        navigationDisplayTumblrs();
+        return false;
+    }).attr('title', 'Show tagged tumblrs')
+}
+
+function navigationHideTumblrs() {
+    $("#taggedTumblrs").slideUp();
+    addNavigationDisplayTumblrLink();
 }

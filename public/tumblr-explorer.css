@@ -117,3 +117,42 @@ a:hover {
     width: 200px;
     display: none;
 }
+
+#navigation {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: none;
+}
+
+#navigation a {
+    border: 1px #505050 solid;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
+.navigationContent {
+    position: absolute;
+    top: 40px;
+    right: 10px;
+    display: none;
+    border: 1px #505050 solid;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
+.navigationContent ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
