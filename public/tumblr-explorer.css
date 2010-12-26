@@ -18,6 +18,10 @@ a:hover {
 
 }
 
+.visited {
+    color: #888888;
+}
+
 #explorer-content {
     display: none;
     position: absolute;
