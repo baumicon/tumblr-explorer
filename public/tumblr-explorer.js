@@ -14,31 +14,52 @@ $(function() {
     $('#error').ajaxError(function() {
         $(this).fadeIn().delay(5000).fadeOut();
     });
+
+    $.history.init(function(tumblrUrl) {
+        if (tumblrUrl == "") {
+            if (currentTumblr) {
+                currentTumblr = null;
+                $("#explorer, #via").slideUp(function() {
+                    $(".post").remove();
+                    $("#explorerTitle").hide();
+                    $("#explorer").show();
+                    $("#mainForm").slideDown();
+                });
+            } else {
+                // starting the app: doing nothing
+            }
+        } else {
+            $("#explorer, #via, #mainForm").slideUp(function() {
+                $(".post").remove();
+                $("#explorerTitle").hide();
+                $("#explorer").show();
+                currentTumblr = tumblrs[tumblrUrl];
+                if (! currentTumblr) {
+                    // refreshed the page
+                    $.getJSON('/tumblr?u=' + tumblrUrl, function(tumblr) {
+                        currentTumblr = tumblrs[tumblr.url] = tumblr;
+                        displayCurrentTumblr();
+                    });
+                } else {
+                    displayCurrentTumblr();
+                }
+            });
+        }
+    });
 });
 
 function displayMain() {
     var url = $("input[name=u]").val();
     if (url != "") {
         $.getJSON('/tumblr?u=' + url, function(tumblr) {
-            currentTumblr = tumblr;
             tumblrs[tumblr.url] = tumblr;
-            $("#mainForm").slideUp(displayCurrentTumblr).remove();
+            $("#mainForm").slideUp($.history.load(tumblr.url));
         });
     }
 }
 
-function displayTumblr(tumblrUrl) {
-    $("#explorer, #via").slideUp(function() {
-        $(".post").remove();
-        $("#explorerTitle").hide();
-        $("#explorer").show();
-        currentTumblr = tumblrs[tumblrUrl];
-        displayCurrentTumblr();
-    });
-}
-
 function displayCurrentTumblr() {
-    $("#explorerTitle").html(createTagTumblrLink(currentTumblr.url, "tfM_" + currentTumblr.id) + " " + currentTumblr.name + " <a href='" + currentTumblr.url + "' target='_blank'>→</a>").slideDown();
+    $("#explorerTitle").html(createTagTumblrLink(currentTumblr.url, "tfM_" + currentTumblr.id) + " <a href='" + currentTumblr.url + "' target='_blank'>" + currentTumblr.name + "</a>").slideDown();
     bindTagTumblrLink(currentTumblr.url, "tfM_" + currentTumblr.id);
     for (var i = 0; i < Math.min(25, currentTumblr.posts.length); i++) {
         var currentPost = currentTumblr.posts[i];
@@ -49,7 +70,7 @@ function displayCurrentTumblr() {
         content += "<div class='postDate'>" +
                 "<a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + currentPost.timestamp.toLocaleString() + "</a>";
         if (currentPost.via) {
-            content += " <a href='#' id='more_" + currentPost.id + "' title='Other posts from " + currentPost.via + "' onclick='displayVia(" + currentPost.id + "); return false;'>⇥</a>";
+            content += " <a href='#' id='more_" + currentPost.id + "' title='Other posts from " + currentPost.via + "' onclick='displayVia(" + currentPost.id + "); return false;'>⇢</a>";
         }
         content += "</div>";
         $("#explorerContent").append(content);
@@ -88,7 +109,7 @@ function displayVia(id) {
                 var displayVia = function() {
                     var content = "<div id='via'><div>" +
                             createTagTumblrLink(tumblr.id, "tfVia_" + tumblr.id) +
-                            " <a onclick='displayTumblr(\"" + tumblr.url + "\"); return false;' href='#'>" + tumblr.name + "</a> " +
+                            " <a onclick='$.history.load(\"" + tumblr.url + "\"); return false;' href='#'>" + tumblr.name + "</a> " +
                             "</div></div>";
                     $('body').append(content);
                     bindTagTumblrLink(tumblr.id, "tfVia_" + tumblr.id);
@@ -101,7 +122,10 @@ function displayVia(id) {
                 if (existingVia.length == 0) {
                     displayVia();
                 } else {
-                    $("#via").slideUp(displayVia).remove();
+                    $("#via").slideUp(function() {
+                        $(this).remove();
+                        displayVia();
+                    });
                 }
             };
 
@@ -171,7 +195,7 @@ function bindTagTumblrLink(tumblrUrl, divId) {
 function tagTumblr(tumblrUrl, divId) {
     taggedTumblrs[tumblrUrl] = tumblrs[tumblrUrl];
     $("#" + divId).attr('title', 'Remove from favorites').fadeOut(300, function() {
-       $(this).text("★").unbind('click').fadeIn(300);
+        $(this).text("★").unbind('click').fadeIn(300);
         bindTagTumblrLink(tumblrUrl, divId);
     });
 }
