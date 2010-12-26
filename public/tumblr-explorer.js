@@ -1,6 +1,8 @@
 var currentTumblr = null;
 
-var tumblrs = [];
+var tumblrs = new Object();
+
+var favoritesTumblrs = new Object();
 
 $(function() {
     $("#fullScreen img").load(function() {
@@ -36,8 +38,8 @@ function displayTumblr(tumblrUrl) {
 }
 
 function displayCurrentTumblr() {
-    $("#explorerTitle").html(currentTumblr.name + " <a href='" + currentTumblr.url + "' target='_blank'>→</a>").slideDown();
-    ;
+    $("#explorerTitle").html(createFavoriteLinkTumblr(currentTumblr.url, "tfM_" + currentTumblr.id) + " " + currentTumblr.name + " <a href='" + currentTumblr.url + "' target='_blank'>→</a>").slideDown();
+    bindFavoriteLink(currentTumblr.url, "tfM_" + currentTumblr.id);
     for (var i = 0; i < Math.min(25, currentTumblr.posts.length); i++) {
         var currentPost = currentTumblr.posts[i];
         currentPost.timestamp = new Date(currentPost.timestamp);
@@ -84,7 +86,12 @@ function displayVia(id) {
 
             var displayTumblrInVia = function(tumblr) {
                 var displayVia = function() {
-                    $('body').append("<div id='via'><div><a onclick='displayTumblr(\"" + tumblr.url + "\"); return false;' href='#'>" + tumblr.name + "</a> ★</div></div>");
+                    var content = "<div id='via'><div>" +
+                            createFavoriteLinkTumblr(tumblr.id, "tfVia_" + tumblr.id) +
+                            " <a onclick='displayTumblr(\"" + tumblr.url + "\"); return false;' href='#'>" + tumblr.name + "</a> " +
+                            "</div></div>";
+                    $('body').append(content);
+                    bindFavoriteLink(tumblr.id, "tfVia_" + tumblr.id);
                     $("#via").css('top', $("#image_" + id).offset().top).slideDown(function() {
                         createVia(tumblr);
                     });
@@ -110,6 +117,7 @@ function displayVia(id) {
     });
 }
 
+
 function showFullScreen(imageUrl) {
     $("#fullScreen img").attr('src', imageUrl);
 }
@@ -117,5 +125,66 @@ function showFullScreen(imageUrl) {
 function hideFullScreen() {
     $("#fullScreen").fadeOut(250, function() {
         $("#explorer, #via").fadeTo(250, 1);
+    });
+}
+
+
+/**
+ * Create the link to manipulate the favorite status of a tumblr.
+ * @param tumblrUrl the tumblr url.
+ * @param divId the id of the link.
+ */
+function createFavoriteLinkTumblr(tumblrUrl, divId) {
+    var content = "<a id='" + divId + "' ";
+    if (favoritesTumblrs[tumblrUrl]) {
+        content += "href='#' title='Remove from favorites'>★</a>";
+    } else {
+        content += "href='#' title='Add to favorites'>☆</a>";
+    }
+    return content;
+}
+
+/**
+ * Bind the favorite action on a link created by createFavoriteLinkTumblr
+ * @param tumblrUrl the tumblr url.
+ * @param divId the id of the link.
+ */
+function bindFavoriteLink(tumblrUrl, divId) {
+    if (favoritesTumblrs[tumblrUrl]) {
+        $("#" + divId).click(function() {
+            removeTumblrFromFavorites(tumblrUrl, divId);
+            return false;
+        })
+    } else {
+        $("#" + divId).click(function() {
+            addTumblrToFavorites(tumblrUrl, divId);
+            return false;
+        })
+    }
+}
+
+/**
+ * Add a tumblr to the favorites, called by the action created by bindFavoriteLink
+ * @param tumblrUrl the tumblr url.
+ * @param divId the id of the link.
+ */
+function addTumblrToFavorites(tumblrUrl, divId) {
+    favoritesTumblrs[tumblrUrl] = tumblrs[tumblrUrl];
+    $("#" + divId).attr('title', 'Remove from favorites').fadeOut(300, function() {
+       $(this).text("★").unbind('click').fadeIn(300);
+        bindFavoriteLink(tumblrUrl, divId);
+    });
+}
+
+/**
+ * Remove a tumblr from the favorites, called by the action created by bindFavoriteLink
+ * @param tumblrUrl the tumblr url.
+ * @param divId the id of the link.
+ */
+function removeTumblrFromFavorites(tumblrUrl, divId) {
+    favoritesTumblrs[tumblrUrl] = null;
+    $("#" + divId).attr('title', 'Add to favorites').fadeOut(300, function() {
+        $(this).text("☆").unbind('click').fadeIn(300);
+        bindFavoriteLink(tumblrUrl, divId);
     });
 }
