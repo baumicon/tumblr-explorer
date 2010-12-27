@@ -119,7 +119,7 @@ function displayVia(id) {
                             " <a " + (tumblr.viewed ? ' class="visited"' : '') + "onclick='$.history.load(\"" + tumblr.url + "\"); return false;' href='#'>" + tumblr.name + "</a> " +
                             "</div></div>";
                     $('body').append(content);
-                    bindTagTumblrLink(tumblr.id, "tfVia_" + tumblr.id);
+                    bindTagTumblrLink(tumblr.url, "tfVia_" + tumblr.id);
                     $("#via").css('top', $("#image_" + id).offset().top).slideDown(function() {
                         createVia(tumblr);
                     });
