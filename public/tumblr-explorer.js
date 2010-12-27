@@ -2,6 +2,8 @@ var currentTumblr = null;
 
 var tumblrs = new Object();
 
+var posts = new Object();
+
 var taggedTumblrs = new Object();
 
 $(function() {
@@ -38,7 +40,8 @@ $(function() {
                 if (! currentTumblr) {
                     // refreshed the page
                     $.getJSON('/tumblr?u=' + tumblrUrl, function(tumblr) {
-                        currentTumblr = tumblrs[tumblr.url] = tumblr;
+                        storeTumblr(tumblr);
+                        currentTumblr = tumblr;
                         displayCurrentTumblr();
                     });
                 } else {
@@ -55,7 +58,7 @@ function displayMain() {
     var url = $("input[name=u]").val();
     if (url != "") {
         $.getJSON('/tumblr?u=' + url, function(tumblr) {
-            tumblrs[tumblr.url] = tumblr;
+            storeTumblr(tumblr);
             $("#mainForm").slideUp($.history.load(tumblr.url));
         });
     }
@@ -70,9 +73,9 @@ function displayCurrentTumblr() {
         currentPost.timestamp = new Date(currentPost.timestamp);
         var content = "<div class='post' id='post_" + currentPost.id + "'>" +
                 "<div class='postImage' id='divImage_" + currentPost.id + "'>" +
-                "<a onclick='showFullScreen(\"" + currentPost.max_image_url + "\");'><img id='image_" + currentPost.id + "'></a>";
+                "<a title='Zoom' onclick='showFullScreen(" + currentPost.id + ");'><img id='image_" + currentPost.id + "'></a>";
         content += "<div class='postDate'>" +
-                "<a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + currentPost.timestamp.toLocaleString() + "</a>";
+                "<a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + formattedDate(currentPost.timestamp) + "</a>";
         if (currentPost.via) {
             content += " <a href='#' id='more_" + currentPost.id + "' title='Other posts from " + currentPost.via + "' onclick='displayVia(" + currentPost.id + "); return false;'>⇢</a>";
         }
@@ -96,7 +99,7 @@ function displayVia(id) {
                     var currentPost = tumblr.posts[i];
                     if (currentPost.id != id) {
                         var content = "<span class='via'>" +
-                                "<img id='viaImage_" + currentPost.id + "'onclick='showFullScreen(\"" + currentPost.max_image_url + "\");'>"
+                                "<img title='Zoom' id='viaImage_" + currentPost.id + "'onclick='showFullScreen(" + currentPost.id + ");'>"
                                 + "</span>";
                         via.append(content);
                         $("#viaImage_" + currentPost.id).load(
@@ -137,7 +140,7 @@ function displayVia(id) {
                 displayTumblrInVia(tumblrs[post.via]);
             } else {
                 $.getJSON('/tumblr?u=' + post.via, function(tumblr) {
-                    tumblrs[post.via] = tumblr;
+                    storeTumblr(tumblr);
                     displayTumblrInVia(tumblr);
                 });
             }
@@ -145,9 +148,24 @@ function displayVia(id) {
     });
 }
 
+function storeTumblr(tumblr) {
+    tumblrs[tumblr.url] = tumblr;
+    for (var i = 0; i < tumblr.posts.length; i++) {
+        var post = tumblr.posts[i];
+        if(post.timestamp.length) {
+            post.timestamp = new Date(post.timestamp);
+        }
+        posts[post.id] = post;
+    }
+}
 
-function showFullScreen(imageUrl) {
-    $("#fullScreen img").attr('src', imageUrl);
+
+function showFullScreen(postId) {
+    var post = posts[postId];
+    $("#fullScreenLink").attr('href', post.url).html(formattedDate(post.timestamp));
+    $("#fullScreen img").attr('src', post.max_image_url);
+
+
 }
 
 function hideFullScreen() {
@@ -220,24 +238,38 @@ function untagTumblr(tumblrUrl, divId) {
 function navigationDisplayTumblrs() {
     var content = "<ul>";
     $.each(taggedTumblrs, function(i, tumblr) {
-       content += "<li><a " + (tumblr.viewed ? ' class="visited"' : '') + "href='#' title='Show this tumblr' onclick='$.history.load(\"" + tumblr.url + "\"); return false;'>" + tumblr.name + "</a></li>";
+        content += "<li><a " + (tumblr.viewed ? ' class="visited"' : '') + "href='#' title='Show this tumblr' onclick='$.history.load(\"" + tumblr.url + "\"); return false;'>" + tumblr.name + "</a></li>";
     });
     content += "</ul>";
     $("#taggedTumblrs").html(content).slideDown();
-    $("#navigationTumblrs").unbind('click').click(function() {
-        navigationHideTumblrs();
-        return false;
-    }).attr('title', 'Hide tagged tumblrs')
+    $("#navigationTumblrs").unbind('click').click(
+                                                 function() {
+                                                     navigationHideTumblrs();
+                                                     return false;
+                                                 }).attr('title', 'Hide tagged tumblrs')
 }
 
 function addNavigationDisplayTumblrLink() {
-    $("#navigationTumblrs").unbind('click').click(function() {
-        navigationDisplayTumblrs();
-        return false;
-    }).attr('title', 'Show tagged tumblrs')
+    $("#navigationTumblrs").unbind('click').click(
+                                                 function() {
+                                                     navigationDisplayTumblrs();
+                                                     return false;
+                                                 }).attr('title', 'Show tagged tumblrs')
 }
 
 function navigationHideTumblrs() {
     $("#taggedTumblrs").slideUp();
     addNavigationDisplayTumblrLink();
+}
+
+
+function twoChars(s) {
+    s = s.toString();
+    while(s.length < 2) {
+        s = "0" + s;
+    }
+    return s;
+}
+function formattedDate(timestamp) {
+    return twoChars(timestamp.getHours())+":" + twoChars(timestamp.getMinutes()) + " " + twoChars(timestamp.getDate()) + "/" + twoChars(timestamp.getMonth()) + "/" + timestamp.getFullYear();
 }

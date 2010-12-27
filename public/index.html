@@ -28,17 +28,19 @@
 </div>
 
 
-<div id="fullScreen" onclick="hideFullScreen()">
-    <div><img title="Click to hide"></div>
-    <div><a href="#">Click to hide</a></div>
+<div id="fullScreen">
+    <div>
+        <a href="#" onclick="hideFullScreen(); return false;">
+            <img title="Click to hide">
+        </a>
+    </div>
+    <div><a id="fullScreenLink" title="Go to the post's page" target="_blank" href="#"></a></div>
 </div>
 
 
 <div id="error">
     An error occured when querrying the server, please retry later or navigate on another page
 </div>
-
-
 
 
 
