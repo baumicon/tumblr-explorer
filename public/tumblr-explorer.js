@@ -27,7 +27,7 @@ $(function() {
                     $(".post").remove();
                     $("#explorerTitle").hide();
                     $("#explorer").show();
-                    $("#mainForm").slideDown();
+                    $(".main").slideDown();
                 });
             } else {
                 // starting the app: doing nothing
@@ -37,7 +37,7 @@ $(function() {
                 bindNavigationDisplayTumblrs();
                 bindNavigationDisplayPosts();
             });
-            $("#explorer, #via, #mainForm, .navigationContent").slideUp(function() {
+            $("#explorer, #via, .main, .navigationContent").slideUp(function() {
                 $(".post").remove();
                 $("#explorerTitle").hide();
                 $("#explorer").show();
@@ -65,7 +65,7 @@ function displayMain() {
     if (url != "") {
         $.getJSON('/tumblr?u=' + url, function(tumblr) {
             storeTumblr(tumblr);
-            $("#mainForm").slideUp($.history.load(tumblr.url));
+            $(".main").slideUp($.history.load(tumblr.url));
         });
     }
 }

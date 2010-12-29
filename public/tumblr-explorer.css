@@ -18,6 +18,32 @@ a:hover {
 
 }
 
+.main {
+    text-align: center;
+}
+
+#mainTitle {
+    padding-top: 10px;
+    font-size: 36px;
+}
+#mainDescription {
+    padding-top: 20px;
+}
+#mainForm {
+    padding-top: 20px;
+}
+#mainForm input {
+    font-size: 24px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    padding: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #333333;
+    text-align: center;
+    background-color: #F8F8F8;
+}
+
 .visited {
     color: #888888;
 }

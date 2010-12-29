@@ -10,12 +10,21 @@
     <link href='http://fonts.googleapis.com/css?family=Buda:light' rel='stylesheet' type='text/css'>
 </head>
 <body>
-<form id="mainForm" onsubmit="displayMain(); return false;">
+<div id="mainTitle" class="main">Tumblr Explorer</div>
+<div id="mainDescription" class="main">
+    This site enable you to easily browse the galaxy of sites that compose <a href="http://www.tumblr.com">Tumblr</a>:<br>
+    you can go easily from one tumblr to another using the ⇢ links<br>
+    and tag images and tumblrs using the ☆ buttons,<br>
+    this way you should be easily visit many tumblrs without loosing your path.
+</div>
+
+<form class="main" id="mainForm" onsubmit="displayMain(); return false;">
     <div>
-        <input name="u" type="url" placeholder="otakugangsta.com" size="30">
+        <div><label for="u">Enter a Tumblr address</label></div>
+        <div><input id="u" name="u" type="url" placeholder="otakugangsta.com" size="30"></div>
     </div>
     <div>
-        <input type="submit" value="do it">
+        <input type="submit" value="Start exploration">
     </div>
 </form>
 
