@@ -138,7 +138,7 @@ class TumblrExplorer < Sinatra::Base
                :url => p.url,
                :small_image_url => p.small_image_url,
                :max_image_url => p.max_image_url,
-               :timestamp => p.timestamp,
+               :timestamp => p.timestamp.strftime('2010/12/29 22:08:15 +0100'),
                :via => (p.via ? p.via.url : nil)} }}.to_json
         else
           raise Sinatra::NotFound
@@ -146,9 +146,11 @@ class TumblrExplorer < Sinatra::Base
       else
         raise Sinatra::NotFound
       end
-    rescue SocketError
+    rescue SocketError => e
+      p e
       raise Sinatra::NotFound
-    rescue OpenURI::HTTPError
+    rescue OpenURI::HTTPError => e
+      p e
       raise Sinatra::NotFound
     end
   end
