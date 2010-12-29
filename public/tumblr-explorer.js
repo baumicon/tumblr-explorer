@@ -84,7 +84,7 @@ function displayCurrentTumblr() {
                 createTagPostLink(currentPost.id) +
                 " <a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + formattedDate(currentPost.timestamp) + "</a>";
         if (currentPost.via) {
-            content += " <a href='#' id='more_" + currentPost.id + "' title='Other posts from " + currentPost.via + "' onclick='displayVia(" + currentPost.id + "); return false;'>⇢</a>";
+            content += " <a href='#' id='more_" + currentPost.id + "' title='Other posts from " + currentPost.via + "' onclick='displayVia(" + currentPost.id + "); return false;'>→</a>";
         }
         content += "</div>";
         $("#explorerContent").append(content);
