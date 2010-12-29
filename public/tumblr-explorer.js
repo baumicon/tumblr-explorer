@@ -152,9 +152,7 @@ function storeTumblr(tumblr) {
     tumblrs[tumblr.url] = tumblr;
     for (var i = 0; i < tumblr.posts.length; i++) {
         var post = tumblr.posts[i];
-        if(post.timestamp.length) {
-            post.timestamp = new Date(post.timestamp);
-        }
+        post.timestamp = new Date(post.timestamp);
         posts[post.id] = post;
     }
 }
@@ -265,11 +263,12 @@ function navigationHideTumblrs() {
 
 function twoChars(s) {
     s = s.toString();
-    while(s.length < 2) {
+    while (s.length < 2) {
         s = "0" + s;
     }
     return s;
 }
 function formattedDate(timestamp) {
-    return twoChars(timestamp.getHours())+":" + twoChars(timestamp.getMinutes()) + " " + twoChars(timestamp.getDate()) + "/" + twoChars(timestamp.getMonth()) + "/" + timestamp.getFullYear();
+    return twoChars(timestamp.getHours()) + ":" + twoChars(timestamp.getMinutes()) + " " +
+            twoChars(timestamp.getDate()) + "/" + twoChars(timestamp.getMonth()) + "/" + timestamp.getFullYear();
 }
