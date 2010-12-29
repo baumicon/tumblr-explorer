@@ -1,18 +1,14 @@
-= Tumblrizer
+= Tumblr-explorer
 
-Many news' sites have ugly and uninteresting images, and tumblr have plenty of good ones, so why not replace the latter with the former ?
+Still a prototype, unfinished and not fully tested, use at your own risks.
 
-This app act as a proxy that replace a site's images with image grabbed from tumblr.
+A tumblr explorer to help you navigate through the mmiriad of existing tumblrs without having to open 247 tabs in your browser and turning mad.
 
----
-
-Sur de nombreux sites de news les images sont moches et pas intéressantes, et tumblr regorge d'excellentes images, pourquoi ne pas remplacer les premières par les secondes ?
-
-Cette application s'utilise comme un proxy qui remplace les images d'un sites pas des images issues de tumblr.
+See http://tumblr-explorer.archiloque.net
 
 = Instructions
 
-Deploy the application on your server and edit the config.ru file to set the database connection and initial tumblr.
+Deploy the application on your server and edit the config.ru file to set the database connection.
 
 = LICENSE
 
