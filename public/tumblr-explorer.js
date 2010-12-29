@@ -1,6 +1,7 @@
 var currentTumblr = null;
 
-var tumblrs = new Object();
+var tumblrsByUrl = new Object();
+var tumblrsById = new Object();
 
 var posts = new Object();
 
@@ -36,7 +37,7 @@ $(function() {
                 $(".post").remove();
                 $("#explorerTitle").hide();
                 $("#explorer").show();
-                currentTumblr = tumblrs[tumblrUrl];
+                currentTumblr = tumblrsByUrl[tumblrUrl];
                 if (! currentTumblr) {
                     // refreshed the page
                     $.getJSON('/tumblr?u=' + tumblrUrl, function(tumblr) {
@@ -66,8 +67,8 @@ function displayMain() {
 
 function displayCurrentTumblr() {
     currentTumblr.viewed = true;
-    $("#explorerTitle").html(createTagTumblrLink(currentTumblr.url, "tfM_" + currentTumblr.id) + " <a href='" + currentTumblr.url + "' target='_blank'>" + currentTumblr.name + "</a>").slideDown();
-    bindTagTumblrLink(currentTumblr.url, "tfM_" + currentTumblr.id);
+    $("#explorerTitle").html(createTagTumblrLink(currentTumblr.id) + " <a href='" + currentTumblr.url + "' target='_blank'>" + currentTumblr.name + "</a>").slideDown();
+    bindTagTumblrLink(currentTumblr.id);
     for (var i = 0; i < Math.min(25, currentTumblr.posts.length); i++) {
         var currentPost = currentTumblr.posts[i];
         currentPost.timestamp = new Date(currentPost.timestamp);
@@ -115,11 +116,11 @@ function displayVia(id) {
             var displayTumblrInVia = function(tumblr) {
                 var displayVia = function() {
                     var content = "<div id='via'><div>" +
-                            createTagTumblrLink(tumblr.id, "tfVia_" + tumblr.id) +
+                            createTagTumblrLink(tumblr.id) +
                             " <a " + (tumblr.viewed ? ' class="visited"' : '') + "onclick='$.history.load(\"" + tumblr.url + "\"); return false;' href='#'>" + tumblr.name + "</a> " +
                             "</div></div>";
                     $('body').append(content);
-                    bindTagTumblrLink(tumblr.url, "tfVia_" + tumblr.id);
+                    bindTagTumblrLink(tumblr.id);
                     $("#via").css('top', $("#image_" + id).offset().top).slideDown(function() {
                         createVia(tumblr);
                     });
@@ -136,8 +137,8 @@ function displayVia(id) {
                 }
             };
 
-            if (tumblrs[post.via]) {
-                displayTumblrInVia(tumblrs[post.via]);
+            if (tumblrsByUrl[post.via]) {
+                displayTumblrInVia(tumblrsByUrl[post.via]);
             } else {
                 $.getJSON('/tumblr?u=' + post.via, function(tumblr) {
                     storeTumblr(tumblr);
@@ -149,7 +150,8 @@ function displayVia(id) {
 }
 
 function storeTumblr(tumblr) {
-    tumblrs[tumblr.url] = tumblr;
+    tumblrsByUrl[tumblr.url] = tumblr;
+    tumblrsById[tumblr.id] = tumblr;
     for (var i = 0; i < tumblr.posts.length; i++) {
         var post = tumblr.posts[i];
         post.timestamp = new Date(post.timestamp);
@@ -175,12 +177,11 @@ function hideFullScreen() {
 
 /**
  * Create the link to manipulate the tag status of a tumblr.
- * @param tumblrUrl the tumblr url.
- * @param divId the id of the link.
+ * @param tumblrId the tumblr id.
  */
-function createTagTumblrLink(tumblrUrl, divId) {
-    var content = "<a id='" + divId + "' ";
-    if (taggedTumblrs[tumblrUrl]) {
+function createTagTumblrLink(tumblrId) {
+    var content = "<a class='tumblr_tag_" + tumblrId + "' ";
+    if (taggedTumblrs[tumblrId]) {
         content += "href='#' title='Untag tumblr'>★</a>";
     } else {
         content += "href='#' title='Tag tumblr'>☆</a>";
@@ -190,46 +191,37 @@ function createTagTumblrLink(tumblrUrl, divId) {
 
 /**
  * Bind the tag action on a link created by createTagTumblrLink.
- * @param tumblrUrl the tumblr url.
- * @param divId the id of the link.
+ * @param tumblrId the tumblr id.
  */
-function bindTagTumblrLink(tumblrUrl, divId) {
-    if (taggedTumblrs[tumblrUrl]) {
-        $("#" + divId).click(function() {
-            untagTumblr(tumblrUrl, divId);
-            return false;
-        })
-    } else {
-        $("#" + divId).click(function() {
-            tagTumblr(tumblrUrl, divId);
-            return false;
-        })
-    }
+function bindTagTumblrLink(tumblrId) {
+    var action = taggedTumblrs[tumblrId] ? untagTumblr : tagTumblr;
+    $(".tumblr_tag_" + tumblrId).click(function() {
+        action(tumblrId);
+        return false;
+    });
 }
 
 /**
  * Tag a tumblr, called by the action created by bindTagTumblrLink.
- * @param tumblrUrl the tumblr url.
- * @param divId the id of the link.
+ * @param tumblrId the tumblr id.
  */
-function tagTumblr(tumblrUrl, divId) {
-    taggedTumblrs[tumblrUrl] = tumblrs[tumblrUrl];
-    $("#" + divId).attr('title', 'Remove from favorites').fadeOut(300, function() {
+function tagTumblr(tumblrId) {
+    taggedTumblrs[tumblrId] = tumblrsById[tumblrId];
+    $(".tumblr_tag_" + tumblrId).attr('title', 'Remove from favorites').fadeOut(300, function() {
         $(this).text("★").unbind('click').fadeIn(300);
-        bindTagTumblrLink(tumblrUrl, divId);
+        bindTagTumblrLink(tumblrId);
     });
 }
 
 /**
  * Untag a tumblr, called by the action created by bindTagTumblrLink.
- * @param tumblrUrl the tumblr url.
- * @param divId the id of the link.
+ * @param tumblrId the tumblr id.
  */
-function untagTumblr(tumblrUrl, divId) {
-    taggedTumblrs[tumblrUrl] = null;
-    $("#" + divId).attr('title', 'Add to favorites').fadeOut(300, function() {
+function untagTumblr(tumblrId) {
+    taggedTumblrs[tumblrId] = tumblrsById[tumblrId];
+    $(".tumblr_tag_" + tumblrId).attr('title', 'Add to favorites').fadeOut(300, function() {
         $(this).text("☆").unbind('click').fadeIn(300);
-        bindTagTumblrLink(tumblrUrl, divId);
+        bindTagTumblrLink(tumblrId);
     });
 }
 
