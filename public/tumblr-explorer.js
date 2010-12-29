@@ -174,6 +174,7 @@ function hideFullScreen() {
     });
 }
 
+/** Tumblr tagging **/
 
 /**
  * Create the link to manipulate the tag status of a tumblr.
@@ -182,9 +183,9 @@ function hideFullScreen() {
 function createTagTumblrLink(tumblrId) {
     var content = "<a class='tumblr_tag_" + tumblrId + "' ";
     if (taggedTumblrs[tumblrId]) {
-        content += "href='#' title='Untag tumblr'>★</a>";
+        content += "href='#' title='Untag this tumblr'>★</a>";
     } else {
-        content += "href='#' title='Tag tumblr'>☆</a>";
+        content += "href='#' title='Tag this tumblr'>☆</a>";
     }
     return content;
 }
@@ -207,7 +208,7 @@ function bindTagTumblrLink(tumblrId) {
  */
 function tagTumblr(tumblrId) {
     taggedTumblrs[tumblrId] = tumblrsById[tumblrId];
-    $(".tumblr_tag_" + tumblrId).attr('title', 'Remove from favorites').fadeOut(300, function() {
+    $(".tumblr_tag_" + tumblrId).attr('title', 'Untag this tumblr').fadeOut(300, function() {
         $(this).text("★").unbind('click').fadeIn(300);
         bindTagTumblrLink(tumblrId);
     });
@@ -219,7 +220,7 @@ function tagTumblr(tumblrId) {
  */
 function untagTumblr(tumblrId) {
     taggedTumblrs[tumblrId] = tumblrsById[tumblrId];
-    $(".tumblr_tag_" + tumblrId).attr('title', 'Add to favorites').fadeOut(300, function() {
+    $(".tumblr_tag_" + tumblrId).attr('title', 'Tag this tumblr').fadeOut(300, function() {
         $(this).text("☆").unbind('click').fadeIn(300);
         bindTagTumblrLink(tumblrId);
     });
@@ -251,6 +252,8 @@ function navigationHideTumblrs() {
     $("#taggedTumblrs").slideUp();
     addNavigationDisplayTumblrLink();
 }
+
+
 
 
 function twoChars(s) {
