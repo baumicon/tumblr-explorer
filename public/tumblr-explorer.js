@@ -10,8 +10,8 @@ var taggedPosts = new Object();
 
 $(function() {
     $("#fullScreen img").load(function() {
-        $("#explorer, #via, .navigationContent, #navigation").fadeTo(500, 0.1, function() {
-            $("#fullScreen").fadeIn(500);
+        $("#explorer, #via, .visibleContent, #navigation").fadeTo(500, 0.1, function() {
+            $("#fullScreen").fadeIn(500).removeClass("notVisible");
         });
     });
 
@@ -23,7 +23,7 @@ $(function() {
         if (tumblrUrl == "") {
             if (currentTumblr) {
                 currentTumblr = null;
-                $("#explorer, #via, #navigation, .navigationContent").slideUp(function() {
+                $("#explorer, #via, .visibleContent, #navigation").slideUp(function() {
                     $(".post").remove();
                     $("#explorerTitle").hide();
                     $("#explorer").show();
@@ -171,6 +171,7 @@ function storeTumblr(tumblr) {
 
 
 function showFullScreen(postId) {
+    updateFullScreenTagPost(postId);
     var post = postsById[postId];
     $("#fullScreenLink").attr('href', post.url).html(formattedDate(post.timestamp));
     $("#fullScreen img").attr('src', post.max_image_url);
@@ -179,9 +180,10 @@ function showFullScreen(postId) {
 }
 
 function hideFullScreen() {
-    $("#fullScreen").fadeOut(250, function() {
-        $("#explorer, #via, .navigationContent, #navigation").fadeTo(250, 1);
-    });
+    $("#fullScreen").fadeOut(250,
+                            function() {
+                                $("#explorer, #via, .visibleContent, #navigation").fadeTo(250, 1);
+                            }).addClass("notVisible");
 }
 
 /** Tumblr tagging **/
@@ -206,7 +208,7 @@ function hideFullScreen() {
      */
     function bindTagTumblrLink(tumblrId) {
         var action = taggedTumblrs[tumblrId] ? untagTumblr : tagTumblr;
-        $(".tumblr_tag_" + tumblrId).click(function() {
+        $(".tumblr_tag_" + tumblrId).unbind('click').click(function() {
             action(tumblrId);
             return false;
         });
@@ -239,21 +241,23 @@ function hideFullScreen() {
     }
 
     function navigationDisplayTumblrs() {
-        var content = "<ul>";
-        $.each(taggedTumblrs, function(i, tumblr) {
-            content += "<li><a " + (tumblr.viewed ? ' class="visited"' : '') + "href='#' title='Show this tumblr' onclick='$.history.load(\"" + tumblr.url + "\"); return false;'>" + tumblr.name + "</a></li>";
-        });
-        content += "</ul>";
-        $("#taggedTumblrs").html(content).slideDown();
-        $("#navigationTumblrs").unbind('click').click(
-                                                     function() {
-                                                         navigationHideTumblrs();
-                                                         return false;
-                                                     }).attr('title', 'Hide tagged tumblrs')
+        if ( $("#fullScreen").hasClass("notVisible") && (!$.isEmptyObject(taggedTumblrs))) {
+            var content = "<ul>";
+            $.each(taggedTumblrs, function(i, tumblr) {
+                content += "<li><a " + (tumblr.viewed ? ' class="visited"' : '') + "href='#' title='Show this tumblr' onclick='$.history.load(\"" + tumblr.url + "\"); return false;'>" + tumblr.name + "</a></li>";
+            });
+            content += "</ul>";
+            $("#taggedTumblrs").html(content).slideDown().removeClass("notVisibleContent").addClass("visibleContent");
+            $("#navigationTumblrs").unbind('click').click(
+                                                         function() {
+                                                             navigationHideTumblrs();
+                                                             return false;
+                                                         }).attr('title', 'Hide tagged tumblrs');
+        }
     }
 
     function navigationHideTumblrs() {
-        $("#taggedTumblrs").slideUp();
+        $("#taggedTumblrs").slideUp().addClass("notVisibleContent").removeClass("visibleContent");
         bindNavigationDisplayTumblrs();
     }
 
@@ -283,13 +287,27 @@ function hideFullScreen() {
         return content;
     }
 
+    function updateFullScreenTagPost(postId) {
+        if (taggedPosts[postId]) {
+            $(".fullScreenPostTag").attr("title", "Untag this post").html("★");
+        } else {
+            $(".fullScreenPostTag").attr("title", "tag this post").html("☆");
+        }
+        var action = taggedPosts[postId] ? untagPost : tagPost;
+        $(".fullScreenPostTag").unbind('click').click(
+                                                     function() {
+                                                         action(postId);
+                                                         return false;
+                                                     }).attr("id", "fullScreenPostTag_" + postId);
+    }
+
     /**
      * Bind the tag action on a link created by createTagPostLink.
      * @param postId the post id.
      */
     function bindTagPostLink(postId) {
         var action = taggedPosts[postId] ? untagPost : tagPost;
-        $(".post_tag_" + postId).click(function() {
+        $(".post_tag_" + postId + ", #fullScreenPostTag_" + postId).unbind('click').click(function() {
             action(postId);
             return false;
         });
@@ -302,7 +320,7 @@ function hideFullScreen() {
     function tagPost(postId) {
         taggedPosts[postId] = postsById[postId];
         navigationHidePosts();
-        $(".post_tag_" + postId).attr('title', 'Untag this post').fadeOut(300, function() {
+        $(".post_tag_" + postId + ", #fullScreenPostTag_" + postId).attr('title', 'Untag this post').fadeOut(300, function() {
             $(this).text("★").unbind('click').fadeIn(300);
             bindTagPostLink(postId);
         });
@@ -315,7 +333,7 @@ function hideFullScreen() {
     function untagPost(postId) {
         taggedPosts[postId] = postsById[postId];
         navigationHidePosts();
-        $(".post_tag_" + postId).attr('title', 'Tag this post').fadeOut(300, function() {
+        $(".post_tag_" + postId + ", #fullScreenPostTag_" + postId).attr('title', 'Tag this post').fadeOut(300, function() {
             $(this).text("☆").unbind('click').fadeIn(300);
             bindTagPostLink(postId);
         });
@@ -330,28 +348,30 @@ function hideFullScreen() {
     }
 
     function navigationDisplayPosts() {
-        var tPosts = $("#taggedPosts").empty();
-        var content = "<ul>";
-        $.each(taggedPosts, function(i, post) {
-            var content = "<span class='taggedPost'>" +
-                    "<img title='Show' id='taggedPost_" + post.id + "' onclick='showFullScreen(" + post.id + ");'>"
-                    + "</span>";
-            tPosts.append(content);
-            $("#taggedPost_" + post.id).load(
-                                            function() {
-                                                $(this).parent().slideDown(2500);
-                                            }).attr('src', post.small_image_url);
-        });
-        tPosts.slideDown();
-        $("#navigationPosts").unbind('click').click(
-                                                   function() {
-                                                       navigationHidePosts();
-                                                       return false;
-                                                   }).attr('title', 'Hide tagged posts')
+        if ( $("#fullScreen").hasClass("notVisible") && (!$.isEmptyObject(taggedPosts))) {
+            var tPosts = $("#taggedPosts").empty();
+            var content = "<ul>";
+            $.each(taggedPosts, function(i, post) {
+                var content = "<span class='taggedPost'>" +
+                        "<img title='Show' id='taggedPost_" + post.id + "' onclick='showFullScreen(" + post.id + ");'>"
+                        + "</span>";
+                tPosts.append(content);
+                $("#taggedPost_" + post.id).load(
+                                                function() {
+                                                    $(this).parent().slideDown(2500);
+                                                }).attr('src', post.small_image_url);
+            });
+            tPosts.slideDown().removeClass("notVisibleContent").addClass("visibleContent");
+            $("#navigationPosts").unbind('click').click(
+                                                       function() {
+                                                           navigationHidePosts();
+                                                           return false;
+                                                       }).attr('title', 'Hide tagged posts');
+        }
     }
 
     function navigationHidePosts() {
-        $("#taggedPosts").slideUp();
+        $("#taggedPosts").slideUp().addClass("notVisibleContent").removeClass("visibleContent");
         bindNavigationDisplayPosts();
     }
 }
