@@ -43,6 +43,19 @@ a:hover {
     text-align: center;
     background-color: #F8F8F8;
 }
+#mainWarn {
+    position: fixed;
+    bottom: 30px;
+    width: 100%;
+    font-size: 16px;
+}
+
+#mainSignature {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    font-size: 12px;
+}
 
 .visited {
     color: #888888;
