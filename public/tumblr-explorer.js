@@ -79,7 +79,7 @@ function displayCurrentTumblr() {
         currentPost.timestamp = new Date(currentPost.timestamp);
         var content = "<div class='post' id='post_" + currentPost.id + "'>" +
                 "<div class='postImage' id='divImage_" + currentPost.id + "'>" +
-                "<a title='Zoom' onclick='showFullScreen(" + currentPost.id + ");'><img id='image_" + currentPost.id + "'></a>";
+                "<a title='Zoom' onclick='showFullScreen(" + currentPost.id + ", false);'><img id='image_" + currentPost.id + "'></a>";
         content += "<div class='postDate'>" +
                 createTagPostLink(currentPost.id) +
                 " <a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + formattedDate(currentPost.timestamp) + "</a>";
@@ -109,7 +109,7 @@ function displayVia(id) {
                     var currentPost = tumblr.posts[i];
                     if (currentPost.id != id) {
                         var content = "<span class='via'>" +
-                                "<img title='Zoom' id='viaImage_" + currentPost.id + "'onclick='showFullScreen(" + currentPost.id + ");'>"
+                                "<img title='Zoom' id='viaImage_" + currentPost.id + "'onclick='showFullScreen(" + currentPost.id + ", false);'>"
                                 + "</span>";
                         via.append(content);
                         $("#viaImage_" + currentPost.id).load(
@@ -170,9 +170,26 @@ function storeTumblr(tumblr) {
 }
 
 
-function showFullScreen(postId) {
+function showFullScreen(postId, displayTumblrTitle) {
     updateFullScreenTagPost(postId);
     var post = postsById[postId];
+    if (displayTumblrTitle) {
+        var titleLink = $("#fullScreenTumblrTitle a");
+        if (post.tumblr.viewed) {
+            titleLink.addClass("titleLink");
+        } else {
+            titleLink.removeClass("titleLink");
+        }
+        titleLink.unbind("click").click(
+                                       function() {
+                                           hideFullScreen();
+                                           $.history.load(post.tumblr.url);
+                                           return false;
+                                       }).html(post.tumblr.name);
+        $("#fullScreenTumblrTitle").removeClass("hidden");
+    } else {
+        $("#fullScreenTumblrTitle").addClass("hidden");
+    }
     $("#fullScreenLink").attr('href', post.url).html(formattedDate(post.timestamp));
     $("#fullScreen img").attr('src', post.max_image_url);
 
@@ -241,7 +258,7 @@ function hideFullScreen() {
     }
 
     function navigationDisplayTumblrs() {
-        if ( $("#fullScreen").hasClass("notVisible") && (!$.isEmptyObject(taggedTumblrs))) {
+        if ($("#fullScreen").hasClass("notVisible") && (!$.isEmptyObject(taggedTumblrs))) {
             var content = "<ul>";
             $.each(taggedTumblrs, function(i, tumblr) {
                 content += "<li><a " + (tumblr.viewed ? ' class="visited"' : '') + "href='#' title='Show this tumblr' onclick='$.history.load(\"" + tumblr.url + "\"); return false;'>" + tumblr.name + "</a></li>";
@@ -348,12 +365,12 @@ function hideFullScreen() {
     }
 
     function navigationDisplayPosts() {
-        if ( $("#fullScreen").hasClass("notVisible") && (!$.isEmptyObject(taggedPosts))) {
+        if ($("#fullScreen").hasClass("notVisible") && (!$.isEmptyObject(taggedPosts))) {
             var tPosts = $("#taggedPosts").empty();
             var content = "<ul>";
             $.each(taggedPosts, function(i, post) {
                 var content = "<span class='taggedPost'>" +
-                        "<img title='Show' id='taggedPost_" + post.id + "' onclick='showFullScreen(" + post.id + ");'>"
+                        "<img title='Show' id='taggedPost_" + post.id + "' onclick='showFullScreen(" + post.id + ", true);'>"
                         + "</span>";
                 tPosts.append(content);
                 $("#taggedPost_" + post.id).load(

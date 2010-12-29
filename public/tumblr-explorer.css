@@ -178,3 +178,7 @@ a:hover {
     max-width: 75px;
     cursor: pointer;
 }
+
+.hidden {
+    display: none;
+}
