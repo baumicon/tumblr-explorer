@@ -152,8 +152,29 @@ a:hover {
     background: white;
 }
 
-.navigationContent ul {
+#taggedTumblrs ul {
     list-style: none;
     margin: 0;
     padding: 0;
+}
+
+#taggedPosts {
+    max-width: 400px;
+    text-align: right;
+}
+
+.taggedPost {
+    display: none;
+}
+
+.taggedPost img {
+    border: 1px #505050 solid;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding: 3px;
+    margin: 5px;
+    max-height: 75px;
+    max-width: 75px;
+    cursor: pointer;
 }
