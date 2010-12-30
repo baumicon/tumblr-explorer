@@ -8,15 +8,30 @@ var postsById = new Object();
 var taggedTumblrs = new Object();
 var taggedPosts = new Object();
 
+var isMobileSafari = false;
+
 $(function() {
+    var deviceAgent = navigator.userAgent.toLowerCase();
+	isMobileSafari = deviceAgent.match(/(iphone|ipod|ipad)/);
+
+    if(isMobileSafari) {
+        $("#fullScreen, #error").css("position", "absolute");
+    }
+
     $("#fullScreen img").load(function() {
         $("#explorer, #via, .visibleContent, #navigation").fadeTo(500, 0.1, function() {
             $("#fullScreen").fadeIn(500).removeClass("notVisible");
+            if(isMobileSafari) {
+                $("#fullScreen").css('top', ($(window).scrollTop() + 50));
+            }
         });
     });
 
     $('#error').ajaxError(function() {
         $(this).fadeIn().delay(5000).fadeOut();
+        if(isMobileSafari) {
+            $(this).css('top', $(window).scrollTop());
+        }
     });
 
     $.history.init(function(tumblrUrl) {
