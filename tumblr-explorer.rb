@@ -111,8 +111,8 @@ class TumblrExplorer < Sinatra::Base
           t = Tumblr.filter(:url => url).first
           if t
             # feed exist
-            unless t.timestamp
-              # feed exist but never fetched
+            unless t.timestamp && (t.timestamp > (DateTime.now - 7))
+              # feed exist but never fetched or last fetch is more than one week before
               database.transaction do
                 doc = Nokogiri::HTML(open("#{url}api/read?filter=html&num=50&type=photo"))
                 t.update(:timestamp => DateTime.now, :name => doc.search('tumblelog').first['name'])
@@ -130,16 +130,16 @@ class TumblrExplorer < Sinatra::Base
 
           # here we have a tumblr with some posts
           content_type :json
-          {:id => t.id,
-           :url => t.url,
-           :name => t.name,
+          {:id    => t.id,
+           :url   => t.url,
+           :name  => t.name,
            :posts => t.posts.collect { |p| {
-               :id => p.id,
-               :url => p.url,
+               :id              => p.id,
+               :url             => p.url,
                :small_image_url => p.small_image_url,
-               :max_image_url => p.max_image_url,
-               :timestamp => Time.parse(p.timestamp.to_s).to_i * 1000,
-               :via => (p.via ? p.via.url : nil)} }}.to_json
+               :max_image_url   => p.max_image_url,
+               :timestamp       => Time.parse(p.timestamp.to_s).to_i * 1000,
+               :via             => (p.via ? p.via.url : nil)} }}.to_json
         else
           raise Sinatra::NotFound
         end
@@ -178,18 +178,18 @@ class TumblrExplorer < Sinatra::Base
   # Extract posts from a tumblr url
   def extract_posts(doc, t)
     doc.search('post').each do |post|
-      post_url  = post['url']
+      post_url        = post['url']
       small_image_url = post.search('photo-url[@max-width="400"]').first
       if small_image_url
         small_image_url = small_image_url.content
-        max_image_url = post.search('photo-url[@max-width="1280"]').first
+        max_image_url   = post.search('photo-url[@max-width="1280"]').first
         if max_image_url
           max_image_url = max_image_url.content
         end
 
         # try to locate a possible original blog
-        via       = nil
-        link      = post.search('photo-link-url').first
+        via  = nil
+        link = post.search('photo-link-url').first
         if link
           link = validate_url(link.content)
           if link =~ TEST_TUMBLR_REGEX
@@ -210,12 +210,14 @@ class TumblrExplorer < Sinatra::Base
           end
         end
         t_via =via ? (Tumblr.filter(:url => via).first || Tumblr.create(:url => via)) : nil
-        Post.create(:url => post_url,
-                    :small_image_url => small_image_url,
-                    :max_image_url => max_image_url,
-                    :tumblr => t,
-                    :timestamp => Time.at(post['unix-timestamp'].to_i).send(:to_datetime),
-                    :via => t_via)
+        unless Post.filter(:url => post_url).first
+          Post.create(:url             => post_url,
+                      :small_image_url => small_image_url,
+                      :max_image_url   => max_image_url,
+                      :tumblr          => t,
+                      :timestamp       => Time.at(post['unix-timestamp'].to_i).send(:to_datetime),
+                      :via             => t_via)
+        end
       else
         p post
       end
