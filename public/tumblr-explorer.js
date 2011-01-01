@@ -1,27 +1,52 @@
+/**
+ * The tumblr currently displayed.
+ */
 var currentTumblr = null;
 
+/**
+ * All the tumblr indexed by their url.
+ */
 var tumblrsByUrl = new Object();
+
+/**
+ * All the tumblr indexed by their id.
+ */
 var tumblrsById = new Object();
 
+/**
+ * All the posts indexed by their id.
+ */
 var postsById = new Object();
 
+/**
+ * The tagged tumblrs by their id.
+ */
 var taggedTumblrs = new Object();
+
+/**
+ * The tagged posts by their id.
+ */
 var taggedPosts = new Object();
+
+/**
+ * Indicates the id of the tumblr displayed in the via panel
+ */
+var currentVia = null;
 
 var isMobileSafari = false;
 
 $(function() {
     var deviceAgent = navigator.userAgent.toLowerCase();
-	isMobileSafari = deviceAgent.match(/(iphone|ipod|ipad)/);
+    isMobileSafari = deviceAgent.match(/(iphone|ipod|ipad)/);
 
-    if(isMobileSafari) {
+    if (isMobileSafari) {
         $("#fullScreen, #error").css("position", "absolute");
     }
 
     $("#fullScreen img").load(function() {
         $("#explorer, #via, .visibleContent, #navigation").fadeTo(500, 0.1, function() {
             $("#fullScreen").fadeIn(500).removeClass("notVisible");
-            if(isMobileSafari) {
+            if (isMobileSafari) {
                 $("#fullScreen").css('top', ($(window).scrollTop() + 50));
             }
         });
@@ -29,7 +54,7 @@ $(function() {
 
     $('#error').ajaxError(function() {
         $(this).fadeIn().delay(5000).fadeOut();
-        if(isMobileSafari) {
+        if (isMobileSafari) {
             $(this).css('top', $(window).scrollTop());
         }
     });
@@ -85,7 +110,11 @@ function displayMain() {
     }
 }
 
+/**
+ * Display the tumblr stored in currentTumblr.
+ */
 function displayCurrentTumblr() {
+    currentVia = null;
     currentTumblr.viewed = true;
     $("#explorerTitle").html(createTagTumblrLink(currentTumblr.id) + " <a href='" + currentTumblr.url + "' target='_blank'>" + currentTumblr.name + "</a>").slideDown();
     bindTagTumblrLink(currentTumblr.id);
@@ -113,31 +142,24 @@ function displayCurrentTumblr() {
     }
 }
 
+/**
+ * Display the tumblr where an image is coming from.
+ * @param id the post id we clicked on.
+ */
 function displayVia(id) {
     $.each(currentTumblr.posts, function(i, post) {
         if (post.id == id) {
             var createVia = function(tumblr) {
-                var via = $("#via");
-                var numberDisplayed = 0;
-                var i = 0;
-                while ((numberDisplayed != 10) && (i < tumblr.posts.length)) {
-                    var currentPost = tumblr.posts[i];
-                    if (currentPost.id != id) {
-                        var content = "<span class='via'>" +
-                                "<img title='Zoom' id='viaImage_" + currentPost.id + "'onclick='showFullScreen(" + currentPost.id + ", false);'>"
-                                + "</span>";
-                        via.append(content);
-                        $("#viaImage_" + currentPost.id).load(
-                                                             function() {
-                                                                 $(this).parent().slideDown(2500);
-                                                             }).attr('src', currentPost.small_image_url);
-                        numberDisplayed++;
-                    }
-                    i++;
+                for (var i = 0; i < Math.min(10, tumblr.posts.length); i++) {
+                    addViaImage(tumblr.posts[i]);
+                }
+                if (tumblr.posts.length >= 10) {
+                    setTimeout(displayViaMore, 2500, post.id, 0);
                 }
             };
 
             var displayTumblrInVia = function(tumblr) {
+                currentVia = id;
                 var displayVia = function() {
                     var content = "<div id='via'><div>" +
                             createTagTumblrLink(tumblr.id) +
@@ -154,7 +176,7 @@ function displayVia(id) {
                 if (existingVia.length == 0) {
                     displayVia();
                 } else {
-                    $("#via").slideUp(function() {
+                    existingVia.stop(true, true).slideUp(function() {
                         $(this).remove();
                         displayVia();
                     });
@@ -171,6 +193,38 @@ function displayVia(id) {
             }
         }
     });
+}
+
+/**
+ * Add a post's image in the via panel.
+ * @param post
+ */
+function addViaImage(post) {
+    var content = "<span class='via'>" +
+            "<img title='Zoom' id='viaImage_" + post.id + "'onclick='showFullScreen(" + post.id + ", false);'>"
+            + "</span>";
+    $("#via").append(content);
+    $("#viaImage_" + post.id).load(
+                                  function() {
+                                      $(this).parent().slideDown(2500);
+                                  }).attr('src', post.small_image_url);
+}
+
+/**
+ * Display more images in the via panel.
+ * @param id the id of the post we are displaying the via.
+ * @param startingIndex the index where to start displaying the images from.
+ */
+function displayViaMore(id, startingIndex) {
+    if (currentVia == id) {
+        var tumblr = tumblrsByUrl[postsById[id].via];
+        for (var i = startingIndex; i < Math.min(10 + startingIndex, tumblr.posts.length); i++) {
+            addViaImage(tumblr.posts[i]);
+        }
+        if (tumblr.posts.length >= (10 + startingIndex)) {
+            setTimeout(displayViaMore, 2500, id, startingIndex + 10);
+        }
+    }
 }
 
 function storeTumblr(tumblr) {
