@@ -83,7 +83,7 @@ class TumblrExplorer < Sinatra::Base
   end
 
   class Tumblr < Sequel::Model
-    one_to_many :posts, :eager_graph => :via, :order => :timestamp.desc
+    one_to_many :posts, :eager_graph => :via, :order => :timestamp.desc, :limit => 50
   end
 
   class Post < Sequel::Model
@@ -138,7 +138,7 @@ class TumblrExplorer < Sinatra::Base
                :url => p.url,
                :small_image_url => p.small_image_url,
                :max_image_url => p.max_image_url,
-               :timestamp => p.timestamp.strftime('2010/12/29 22:08:15 +0100'),
+               :timestamp => Time.parse(p.timestamp.to_s).to_i * 1000,
                :via => (p.via ? p.via.url : nil)} }}.to_json
         else
           raise Sinatra::NotFound

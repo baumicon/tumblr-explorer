@@ -120,7 +120,6 @@ function displayCurrentTumblr() {
     bindTagTumblrLink(currentTumblr.id);
     for (var i = 0; i < Math.min(25, currentTumblr.posts.length); i++) {
         var currentPost = currentTumblr.posts[i];
-        currentPost.timestamp = new Date(currentPost.timestamp);
         var content = "<div class='post' id='post_" + currentPost.id + "'>" +
                 "<div class='postImage' id='divImage_" + currentPost.id + "'>" +
                 "<a title='Zoom' onclick='showFullScreen(" + currentPost.id + ", false);'><img id='image_" + currentPost.id + "'></a>";
