@@ -155,6 +155,42 @@ class TumblrExplorer < Sinatra::Base
     end
   end
 
+  get '/more' do
+    begin
+      if (u = params[:u]) && (d = params[:d].to_i)
+        t = Tumblr.filter(:url => u).first
+        if t
+          if Post.filter(:tumblr_id => t.id).count < (d + 50)
+            doc = Nokogiri::HTML(open("#{u}api/read?filter=html&num=50&type=photo&start=#{d}"))
+            database.transaction do
+              extract_posts(doc, t)
+            end
+          end
+          posts = Post.filter(:tumblr_id => t.id).limit(50, d)
+          content_type :json
+          posts.collect { |p| {
+              :id              => p.id,
+              :url             => p.url,
+              :small_image_url => p.small_image_url,
+              :max_image_url   => p.max_image_url,
+              :timestamp       => Time.parse(p.timestamp.to_s).to_i * 1000,
+              :via             => (p.via ? p.via.url : nil)} }.to_json
+        else
+          raise Sinatra::NotFound
+        end
+      else
+        raise Sinatra::NotFound
+      end
+    rescue SocketError => e
+      p e
+      raise Sinatra::NotFound
+    rescue OpenURI::HTTPError => e
+      p e
+      raise Sinatra::NotFound
+    end
+  end
+
+
   private
 
   def root_url url

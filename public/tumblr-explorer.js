@@ -35,6 +35,14 @@ var currentVia = null;
 
 var isMobileSafari = false;
 
+/**
+ * This status indicates if something is loading or if we can enable the carousel.
+ * A positive value indicates that some images have not yet loaded
+ * a negative that we are swapping to another tumblr
+ * 0 that we can load more posts.
+ */
+var loadingStatus = -1;
+
 $(function() {
     var deviceAgent = navigator.userAgent.toLowerCase();
     isMobileSafari = deviceAgent.match(/(iphone|ipod|ipad)/);
@@ -62,6 +70,7 @@ $(function() {
     $.history.init(function(tumblrUrl) {
         if (tumblrUrl == "") {
             if (currentTumblr) {
+                loadingStatus = -1;
                 currentTumblr = null;
                 $("#explorer, #via, .visibleContent, #navigation").slideUp(function() {
                     $(".post").remove();
@@ -73,6 +82,7 @@ $(function() {
                 // starting the app: doing nothing
             }
         } else {
+            loadingStatus = -1;
             $("#navigation").slideDown(function() {
                 bindNavigationDisplayTumblrs();
                 bindNavigationDisplayPosts();
@@ -98,6 +108,41 @@ $(function() {
 
     bindNavigationDisplayTumblrs();
     bindNavigationDisplayPosts();
+
+    $(window).scroll(function() {
+        if ((loadingStatus == 0) && ($(window).scrollTop() == $(document).height() - $(window).height())) {
+            loadingStatus = -1;
+            var displayNextPosts = function() {
+                loadingStatus = 0;
+                for (var i = numberOfDisplayedPosts; i < Math.min(numberOfDisplayedPosts + 25, cTumblr.posts.length); i++) {
+                    loadingStatus++;
+                    addCurrentTumblrPost(cTumblr.posts[i]);
+                }
+            };
+            var numberOfDisplayedPosts = $('.post').length;
+            // copy it in case it changes during the fetch
+            var cTumblr = currentTumblr;
+            if ((! cTumblr.fetchedAllPosts) && (cTumblr.posts.length < (numberOfDisplayedPosts + 25))) {
+                // load more posts
+                $.getJSON('/more?d=' + currentTumblr.posts.length + '&u=' + currentTumblr.url, function(posts) {
+                    $.each(posts, function(i, post) {
+                        cTumblr.posts.push(post);
+                        storePost(post, cTumblr);
+                    });
+                    if (posts.length < 50) {
+                        cTumblr.fetchedAllPosts = true;
+                    }
+                    // the displayed tumblr is still the same: display the new posts
+                    if (currentTumblr == cTumblr) {
+                        displayNextPosts();
+                    }
+                });
+            } else {
+                displayNextPosts();
+            }
+        }
+    });
+
 });
 
 function displayMain() {
@@ -118,27 +163,38 @@ function displayCurrentTumblr() {
     currentTumblr.viewed = true;
     $("#explorerTitle").html(createTagTumblrLink(currentTumblr.id) + " <a href='" + currentTumblr.url + "' target='_blank'>" + currentTumblr.name + "</a>").slideDown();
     bindTagTumblrLink(currentTumblr.id);
+    loadingStatus = 0;
     for (var i = 0; i < Math.min(25, currentTumblr.posts.length); i++) {
-        var currentPost = currentTumblr.posts[i];
-        var content = "<div class='post' id='post_" + currentPost.id + "'>" +
-                "<div class='postImage' id='divImage_" + currentPost.id + "'>" +
-                "<a title='Zoom' onclick='showFullScreen(" + currentPost.id + ", false);'><img id='image_" + currentPost.id + "'></a>";
-        content += "<div class='postDate'>" +
-                createTagPostLink(currentPost.id) +
-                " <a href='" + currentPost.url + "'target='_blank' title='Go to the post's page'>" + formattedDate(currentPost.timestamp) + "</a>";
-        if (currentPost.via) {
-            content += " <a href='#' id='more_" + currentPost.id + "' title='Other posts from " + currentPost.via + "' onclick='displayVia(" + currentPost.id + "); return false;'>→</a>";
-        }
-        content += "</div>";
-        $("#explorerContent").append(content);
-        $("#image_" + currentPost.id).load(
-                                          function() {
-                                              var t = $(this);
-                                              t.parent().parent().parent().slideDown(2000);
-                                              var id = $(this).attr('id');
-                                              bindTagPostLink(id.substring(id.lastIndexOf('_') + 1, id.length));
-                                          }).attr('src', currentPost.small_image_url);
+        loadingStatus++;
+        addCurrentTumblrPost(currentTumblr.posts[i]);
     }
+}
+
+/**
+ * Add a post to the current tumblr display.
+ * @param post the post
+ */
+function addCurrentTumblrPost(post) {
+    var content = "<div class='post' id='post_" + post.id + "'>" +
+            "<div class='postImage' id='divImage_" + post.id + "'>" +
+            "<a title='Zoom' onclick='showFullScreen(" + post.id + ", false);'><img id='image_" + post.id + "'></a>";
+    content += "<div class='postDate'>" +
+            createTagPostLink(post.id) +
+            " <a href='" + post.url + "'target='_blank' title='Go to the post's page'>" + formattedDate(post.timestamp) + "</a>";
+    if (post.via) {
+        content += " <a href='#' id='more_" + post.id + "' title='Other posts from " + post.via + "' onclick='displayVia(" + post.id + "); return false;'>→</a>";
+    }
+    content += "</div>";
+    $("#explorerContent").append(content);
+    $("#image_" + post.id).load(
+                               function() {
+                                   var t = $(this);
+                                   t.parent().parent().parent().slideDown(2000, function() {
+                                       loadingStatus = Math.max(0, loadingStatus - 1);
+                                   });
+                                   var id = $(this).attr('id');
+                                   bindTagPostLink(id.substring(id.lastIndexOf('_') + 1, id.length));
+                               }).attr('src', post.small_image_url);
 }
 
 /**
@@ -231,10 +287,13 @@ function storeTumblr(tumblr) {
     tumblrsById[tumblr.id] = tumblr;
     for (var i = 0; i < tumblr.posts.length; i++) {
         var post = tumblr.posts[i];
-        post.timestamp = new Date(post.timestamp);
-        post.tumblr = tumblr;
-        postsById[post.id] = post;
+        storePost(post, tumblr);
     }
+}
+function storePost(post, tumblr) {
+    post.timestamp = new Date(post.timestamp);
+    post.tumblr = tumblr;
+    postsById[post.id] = post;
 }
 
 
